@@ -1,103 +1,75 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include <pthread.h>
 #include <iostream>
-#include <prod_cons_MT.h>
+#include <fstream>
+#include <vector>
+#include <sched_sim.h>
 
 using namespace std;
 
-//Buffer constructor
-Buffer::Buffer(int num_prod, int num_cons, int size)
+// Program Constructor
+Program::Program(int pid, int cpu_burst)
 {
-    srand(time(NULL));
-    buffer_head = 0;
-    buffer_tail = 0;
-    buffer_size = size;
-    buffer[size];
-    pthread_mutex_init(&mutex, NULL);
-    pthread_cond_init(&full_cv, NULL);
-    pthread_cond_init(&empty_cv, NULL);
+    this->pid = pid;
+    this->cpu_burst = cpu_burst;
+    this->wait_time = 0;
+    this->turnaround_time = 0;
 }
 
-//Buffer consumer implement
-void Buffer::consumer(int thread_number) {
-    int randVal = rand() % (10 + 1);
-    cout << "P:" << thread_number << ": Consuming " << randVal << " values\n";
 
-    for(int i = 0; i < randVal; i++)
+// Program functions
+void Program::wait()
+{
+    this->wait_time++;
+    this->turnaround_time++;
+}
+    
+void Program::run_cycle()
+{
+    if(this->turnaround_time - this->wait_time < cpu_burst)
+        this->turnaround_time++;
+}
+    
+bool Program::finished()
+{
+    return turnaround_time == cpu_burst;
+}
+
+
+
+void Program_Spawner::read_program_file(std::string file_name)
+{
+    string line;
+    ifstream program_input_file(file_name);
+    if (program_input_file.is_open())
     {
-        // Lock access to the circular buffer
-        pthread_mutex_lock(&mutex);
-
-        // Check if the queue is empty
-        if(buffer_head == buffer_tail)
+        while ( getline (program_input_file,line) )
         {
-            cout << "C:" << thread_number << ": Blocked due to empty buffer";
+            std::vector<int> space_locations;
+            std::size_t found_index = -1; 
 
-            // Wait until the queue is not empty
-            while(buffer_head == buffer_tail)
+            // Find the indexes of all the space charaters in the string
+            while(found_index != std::string::npos)
             {
-                pthread_cond_wait(&empty_cv, &mutex);
+                found_index = line.find(' ', found_index + 1);
+
+                if(found_index != std::string::npos)
+                    space_locations.push_back(found_index);
             }
 
-            cout << "C:" << thread_number << ": Done waiting on empty buffer";
-        }
+            // Now that all the locations of the spaces have been found, perform
+            // substring operations and parse the separated numbers
 
-        // Read the buffer value
-        cout << "P:" << &thread_number << ": Reading  " << buffer[buffer_tail] << " from position " << buffer_tail << "\n";
-
-        // Move the tail of the buffer
-        buffer_tail++;
-        if(buffer_tail == buffer_size) {
-            buffer_tail = 0;
-        }
-                
-        // Signal that the buffer is no longer full
-        pthread_cond_signal(&full_cv);
-    }
-}
-
-//Buffer producer implement
-void Buffer::producer(int thread_number)
-{
-    int randVal = rand() % (10 + 1);
-    cout << "P:" << thread_number << ": Producing " << randVal << " values\n";
-
-    for(int i = 0; i < randVal; i++)
-    {
-        // Lock access to the circular buffer
-        pthread_mutex_lock(&mutex);
-
-        // Check if the queue is empty
-        if( (buffer_head == buffer_tail - 1) || ( (buffer_head == buffer_size - 1) && (buffer_head == 0)) )
-        {
-            cout << "P:" << thread_number << ": Blocked due to full buffer";
-
-            // Wait until the queue is not full
-            while( (buffer_head == buffer_tail - 1) || ( (buffer_head == buffer_size - 1) && (buffer_head == 0)))
+            for(int i = 0; i < space_locations.size; i++)
             {
-                pthread_cond_wait(&full_cv, &mutex);
+                
             }
-
-            cout << "P:" << thread_number << ": Done waiting on full buffer";
         }
-
-        int rand_in = rand() % (10 + 1);
-        cout << "P:" << thread_number << ": Writing  " << rand_in << " to position " << buffer_head << "\n";
-        buffer[buffer_head] = rand_in;
-
-        // Move the head of the buffer
-        buffer_head++;
-        if(buffer_head == buffer_size) {
-            buffer_head = 0;
-        }
-                
-        // Unlock access to buffer
-        pthread_mutex_lock(&mutex);
-                
-        // Signal that the buffer is no longer full
-        pthread_cond_signal(&empty_cv);
+        program_input_file.close();
     }
+
+    else cout << "Unable to open file"; 
 }
+
+

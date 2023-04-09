@@ -13,7 +13,7 @@ class Program
 
     public:
         Program(int pid, int cpu_burst = 0);
-        void increment_wait_time();
+        void wait();
         void run_cycle();
         bool finished();
 };
