@@ -2,6 +2,7 @@
 #define __sched_sim_h__
 
 #include <list>
+#include <vector>
 
 class Program
 {
@@ -11,6 +12,7 @@ class Program
         int priority;
         int wait_time;
         int turnaround_time;
+        static int program_counter;
 
     public:
         Program(int pid, int cpu_burst = 0, int priority);
@@ -18,8 +20,13 @@ class Program
         void run_cycle();
         int get_burst_time();
         int get_priority();
+        int get_turnaround_time();
         bool finished();
 };
+
+// Initialize the Program pid values to start at 0;
+int Program::program_counter = 0;
+
 
 class Scheduler
 {
@@ -78,12 +85,12 @@ class NPP_Scheduler : public Scheduler
 class Program_Spawner
 {
     private:
-        std::list<Program> queue;
+        std::vector<Program> queue;
     
     public:
         int time;
         void read_program_file(std::string file_name);
-        std::list<Program> run_spawner();
+        std::vector<Program> run_spawner();
 };
 
 class Scheduler_Report
