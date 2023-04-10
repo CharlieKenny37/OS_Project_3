@@ -67,9 +67,9 @@ void SJF_Scheduler::update_queue(Program input) {
     // burst time of input
     int time = input.get_burst_time();
     //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
+    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= &it.get_burst_time()) {
+        if(time >= (*it).get_burst_time()) {
             this->queue.insert(it++, input);
         }
     }
@@ -81,9 +81,9 @@ void STCF_Scheduler::update_queue(Program input) {
     // burst time of input
     int time = input.get_burst_time();
     //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
+    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= &it.get_burst_time()) {
+        if(time >= (*it).get_burst_time()) {
             this->queue.insert(it++, input);
         }
     }
@@ -146,13 +146,14 @@ void Program_Spawner::read_program_file(std::string file_name)
     else cout << "Unable to open file"; 
 }
 
+//?
 std::list<Program> Program_Spawner::run_spawner()
 {
     std::list<Program> spawned_programs;
 
-    for (std::vector<Program>::iterator it = this->queue.; it != data.begin(); --it) {
+    for (std::vector<Program>::iterator it = this->queue.; it != this->queue.begin(); --it) {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= &it.get_burst_time()) {
+        if(time >= (*it).get_burst_time()) {
             this->queue.insert(it++, input);
         }
     }
