@@ -10,10 +10,11 @@
 using namespace std;
 
 // Program Constructor
-Program::Program(int pid, int cpu_burst)
+Program::Program(int pid, int cpu_burst, int priority)
 {
     this->pid = pid;
     this->cpu_burst = cpu_burst;
+    this->priority = priority;
     this->wait_time = 0;
     this->turnaround_time = 0;
 }
@@ -36,6 +37,10 @@ int Program::get_burst_time() {
     return this->cpu_burst;
 }
     
+int Program::get_priority() {
+    return this->priority;
+}
+    
 bool Program::finished()
 {
     return turnaround_time == cpu_burst;
@@ -52,9 +57,9 @@ void SJF_Scheduler::update_queue(Program input) {
     // burst time of input
     int time = input.get_burst_time();
     //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
+    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= &it.get_burst_time()) {
+        if(time >= *it.get_burst_time()) {
             this->queue.insert(it++, input);
         }
     }
@@ -68,7 +73,7 @@ void STCF_Scheduler::update_queue(Program input) {
     //iterates accross list in reverse order
     for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= &it.get_burst_time()) {
+        if(time >= *it.get_burst_time()) {
             this->queue.insert(it++, input);
         }
     }
@@ -79,6 +84,19 @@ void STCF_Scheduler::update_queue(Program input) {
 void RR_Scheduler::update_queue(Program input) {
     this->queue.push_back(input);
 
+}
+
+//Non-Preemptive Priority Scheduling
+void NPP_Scheduler::update_queue(Program input) {
+    // burst time of input
+    int proprity = input.get_priority();
+    //iterates accross list in reverse order
+    for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
+        //if input burst time >= current index burst_time, add behind current index
+        if(time >= *it.get_priority()) {
+            this->queue.insert(it++, input);
+        }
+    }
 }
 
 void Program_Spawner::read_program_file(std::string file_name)

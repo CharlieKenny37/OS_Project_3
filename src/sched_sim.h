@@ -8,14 +8,16 @@ class Program
     private:
         int pid;
         int cpu_burst;
+        int priority;
         int wait_time;
         int turnaround_time;
 
     public:
-        Program(int pid, int cpu_burst = 0);
+        Program(int pid, int cpu_burst = 0, int priority);
         void wait();
         void run_cycle();
         int get_burst_time();
+        int get_priority();
         bool finished();
 };
 
@@ -70,7 +72,7 @@ class RR_Scheduler : public Scheduler
 class NPP_Scheduler : public Scheduler
 {
     private:
-        virtual void update_queue();
+        virtual void update_queue(Program input);
 };
 
 class Program_Spawner
