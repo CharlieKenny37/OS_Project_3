@@ -10,48 +10,47 @@
 using namespace std;
 
 
-
 // Program Constructor
-Program::Program(int cpu_burst, int priority)
+Program::Program(int cpu_burst, int priority, int arrival_time)
 {
     this->pid = this->program_counter;
     this->program_counter++;
-    this->priority = priority;
     this->cpu_burst = cpu_burst;
+    this->priority = priority;
+    this->arrival_time = arrival_time;
     this->wait_time = 0;
     this->turnaround_time = 0;
 }
 
-
 // Program functions
 void Program::wait()
 {
-    this->wait_time++;
-    this->turnaround_time++;
+    wait_time++;
+    turnaround_time++;
 }
     
 void Program::run_cycle()
 {
-    if(this->turnaround_time - this->wait_time < cpu_burst)
-        this->turnaround_time++;
+    if(turnaround_time - wait_time < cpu_burst)
+        turnaround_time++;
 }
 
-int Program::get_burst_time() {
-    return this->cpu_burst;
-}
-    
-int Program::get_priority() {
-    return this->priority;
-}
-
-int Program::get_turnaround_time() {
-    return this->turnaround_time;
-}
-    
 bool Program::finished()
 {
     return turnaround_time == cpu_burst;
 }
+
+int Program::get_burst_time() { return cpu_burst; }
+
+int Program::get_priority() { return priority; }
+
+int Program::get_arrival_time() { return arrival_time; }
+
+int Program::get_wait_time() { return wait_time; }
+
+int Program::get_turnaround_time() { return turnaround_time; }
+    
+
 
 
 
@@ -81,17 +80,18 @@ void STCF_Scheduler::update_queue(Program input) {
     // burst time of input
     int time = input.get_burst_time();
     //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) {
+    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) 
+    {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= (*it).get_burst_time()) {
+        if(time >= (*it).get_burst_time())
             this->queue.insert(it++, input);
-        }
     }
 
 }
 
 //Round Robin
-void RR_Scheduler::update_queue(Program input) {
+void RR_Scheduler::update_queue(Program input)
+{
     this->queue.push_back(input);
 
 }
@@ -134,10 +134,13 @@ void Program_Spawner::read_program_file(std::string file_name)
             int priority = stoi(program_args[1]);
             int arrival_time = stoi(program_args[2]);
 
-            Program new_program = Program(cpu_burst);
+            Program new_program = Program(cpu_burst, priority, arrival_time);
 
             // Add the program to the queue list
-            this->queue.push_back(new_program);
+            queue.push_back(new_program);
+
+            // Set new latest arrival time
+            last_program_arrival = arrival_time;
         }
 
         program_input_file.close();
@@ -146,16 +149,17 @@ void Program_Spawner::read_program_file(std::string file_name)
     else cout << "Unable to open file"; 
 }
 
-//?
-std::list<Program> Program_Spawner::run_spawner()
+std::vector<Program> Program_Spawner::run_spawner()
 {
-    std::list<Program> spawned_programs;
+    std::vector<Program> spawned_programs;
 
-    for (std::vector<Program>::iterator it = this->queue.; it != this->queue.begin(); --it) {
-        //if input burst time >= current index burst_time, add behind current index
-        if(time >= (*it).get_burst_time()) {
-            this->queue.insert(it++, input);
-        }
+    for (int i = 0; i < queue.size(); i++)
+    {
+        // Add programs that have the same arrival time as the current spawner time
+        if(queue[i].get_arrival_time() == time)
+            spawned_programs.push_back(queue[i]);
     }
+
+    return spawned_programs;
 }
 

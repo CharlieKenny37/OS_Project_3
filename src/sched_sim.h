@@ -10,16 +10,21 @@ class Program
         int pid;
         int cpu_burst;
         int priority;
+        int arrival_time;
         int wait_time;
         int turnaround_time;
+
+        // Used to create pids by assigning new programs sequential IDs starting at 0.
         static int program_counter;
 
     public:
-        Program(int pid, int cpu_burst = 0, int priority);
+        Program(int cpu_burst, int priority, int arrival_time);
         void wait();
         void run_cycle();
         int get_burst_time();
         int get_priority();
+        int get_arrival_time();
+        int get_wait_time();
         int get_turnaround_time();
         bool finished();
 };
@@ -30,22 +35,22 @@ int Program::program_counter = 0;
 
 class Scheduler
 {
-    private:
+    protected:
+        std::list<Program> queue;
         Program running_program;
-        int context_switches;
 
+        int context_switches;
+        int time;
+
+        virtual void update_queue(Program input);
         void load_program();
 
     public:
-        int time;
         Scheduler(int time = 0);
-        void is_empty();
+        bool is_empty();
         Program run();
         void add_programs(std::list<Program> programs);
-
-    protected:
-        std::list<Program> queue;
-        virtual void update_queue(Program input);
+        void set_time(int t);
 };
 
 class FCFS_Scheduler : public Scheduler
@@ -86,17 +91,20 @@ class Program_Spawner
 {
     private:
         std::vector<Program> queue;
+        int time;
+        int last_program_arrival;
     
     public:
-        int time;
         void read_program_file(std::string file_name);
         std::vector<Program> run_spawner();
+        void set_time(int t);
+        bool finish_spawning();
 };
 
 class Scheduler_Report
 {
     public:
         std::list<Program> finished_programs;
-}
+};
 
 #endif // __sched_sim_h__
