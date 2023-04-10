@@ -16,7 +16,7 @@ Program::Program(int cpu_burst, int priority)
 {
     this->pid = this->program_counter;
     this->program_counter++;
-
+    this->priority = priority;
     this->cpu_burst = cpu_burst;
     this->wait_time = 0;
     this->turnaround_time = 0;
