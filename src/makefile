@@ -1,7 +1,8 @@
-all: circular_buffer prod_cons_MT
+project3: main.o sched_sim.o
+	g++ -o project3 main.o sched_sim.o
 
-circular_buffer: main.cpp
-	g++ main.cpp -o circular_buffer
+sched_sim.o: sched_sim.cpp
+	g++ -c sched_sim.cpp
 
-prod_cons_MT: prod_cons_MT.cpp
-	g++ rendezvous.c -o rendezvous
+main.o: main.cpp
+	g++ -c main.cpp
