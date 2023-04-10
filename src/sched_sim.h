@@ -15,6 +15,7 @@ class Program
         Program(int pid, int cpu_burst = 0);
         void wait();
         void run_cycle();
+        int get_burst_time();
         bool finished();
 };
 
@@ -22,7 +23,6 @@ class Scheduler
 {
     private:
         Program running_program;
-        std::list<Program> queue;
         int context_switches;
 
         void load_program();
@@ -35,32 +35,33 @@ class Scheduler
         void add_programs(std::list<Program> programs);
 
     protected:
-        void update_queue();
+        std::list<Program> queue;
+        virtual void update_queue(Program input);
 };
 
 class FCFS_Scheduler : public Scheduler
 {
-    private:
-        virtual void update_queue();
+    public:
+        void update_queue(Program input);
 };
 
 class SJF_Scheduler : public Scheduler
 {
     private:
-        virtual void update_queue();
+        void update_queue(Program input);
 };
 
 class STCF_Scheduler : public Scheduler
 {
     private:
-        virtual void update_queue();
+        void update_queue(Program input);
 };
 
 class RR_Scheduler : public Scheduler
 {
     private:    
         int currentProgTime;
-        virtual void update_queue();
+        void update_queue(Program input);
 
     public:
         RR_Scheduler(int quantum);

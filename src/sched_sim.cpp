@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <iterator>
 #include <sched_sim.h>
 
 using namespace std;
@@ -30,13 +31,55 @@ void Program::run_cycle()
     if(this->turnaround_time - this->wait_time < cpu_burst)
         this->turnaround_time++;
 }
+
+int Program::get_burst_time() {
+    return this->cpu_burst;
+}
     
 bool Program::finished()
 {
     return turnaround_time == cpu_burst;
 }
 
+//FCFS
+void FCFS_Scheduler::update_queue(Program input) {
+    this->queue.push_back(input);
 
+}
+
+//SJF
+void SJF_Scheduler::update_queue(Program input) {
+    // burst time of input
+    int time = input.get_burst_time();
+    //iterates accross list in reverse order
+    for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
+        //if input burst time >= current index burst_time, add behind current index
+        if(time >= &it.get_burst_time()) {
+            this->queue.insert(it++, input);
+        }
+    }
+
+}
+
+//STCF  THIS SHOULD PREEMPT IF TIME < CURRENT PROGRAM TIME SOMEHOW
+void STCF_Scheduler::update_queue(Program input) {
+    // burst time of input
+    int time = input.get_burst_time();
+    //iterates accross list in reverse order
+    for (std::list<Program>::iterator it = this->queue.end(); it != data.begin(); --it) {
+        //if input burst time >= current index burst_time, add behind current index
+        if(time >= &it.get_burst_time()) {
+            this->queue.insert(it++, input);
+        }
+    }
+
+}
+
+//Round Robin
+void RR_Scheduler::update_queue(Program input) {
+    this->queue.push_back(input);
+
+}
 
 void Program_Spawner::read_program_file(std::string file_name)
 {
