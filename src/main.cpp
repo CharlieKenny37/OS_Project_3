@@ -177,34 +177,43 @@ int main(int argc, char *argv[])
     finished_reports.push_back(stcf_scheduler.get_scheduler_report());
 
     cout << "*********************************************************" << endl;
-    cout << "TCF Summary (WT = wait time, TT = turnaround time):" << endl << endl;
+    cout << "STCF Summary (WT = wait time, TT = turnaround time):" << endl << endl;
     stcf_scheduler.get_scheduler_report().print_program_summary();
     
     finished_reports.push_back(stcf_scheduler.get_scheduler_report());
 
-    // time = 0;
-    // cout << endl << "***** Round robin *****" << std::endl;
-    // while(!program_spawner.finish_spawning() || !rr_scheduler.is_stagnant())
-    // {
-    //     // Synchronize timing between objects
-    //     rr_scheduler.set_time(time);
-    //     program_spawner.set_time(time);
+    time = 0;
+    // Synchronize timing between objects
+    rr_scheduler.set_time(time);
+    program_spawner.set_time(time);
+    cout << endl << "***** Round robin *****" << std::endl;
+    while(!program_spawner.finish_spawning() || !rr_scheduler.is_stagnant())
+    {
 
-    //     // Enqueue any spawned program
-    //     std::vector<Program> spawned_programs = program_spawner.run_spawner();
-    //     for(int i = 0; i < spawned_programs.size(); i++)
-    //         rr_scheduler.add_program(spawned_programs[i]);
 
-    //     // Run printout on scheduler
-    //     rr_scheduler.document_status();
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            rr_scheduler.add_program(spawned_programs[i]);
 
-    //     // Run scheduler transition
-    //     rr_scheduler.run();
+        // Run printout on scheduler
+        rr_scheduler.document_status();
 
-    //     // Increment time
-    //     time++;
-    // }
-    // finished_reports.push_back(rr_scheduler.get_scheduler_report());
+        // Run scheduler transition
+        rr_scheduler.run();
+
+        // Increment time
+        time++;
+
+        // Synchronize timing between objects
+        rr_scheduler.set_time(time);
+        program_spawner.set_time(time);
+    }
+    finished_reports.push_back(rr_scheduler.get_scheduler_report());
+
+    cout << "*********************************************************" << endl;
+    cout << "RR Summary (WT = wait time, TT = turnaround time):" << endl << endl;
+    rr_scheduler.get_scheduler_report().print_program_summary();
 
     // time = 0;
     // cout << endl << "***** Priority Scheduling *****" << std::endl;

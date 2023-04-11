@@ -98,7 +98,8 @@ std::shared_ptr<Program> Scheduler::load_program()
 }
 
 void Scheduler::run()
-{
+{   
+    int count = 0;
     // Check if there is a program running to start a load or manage a running program
     if(running_program == NULL)
     {
@@ -133,6 +134,22 @@ void Scheduler::run()
             load_program();
 
             running_program->run_cycle();
+        }
+        else if(this->finished_programs.sched_type.compare("Round Robin   ") == 0) {
+            if (this->currentProgTime < this->quantum) {
+                // this->queue.push_back(*(this->running_program));
+                running_program->run_cycle();
+                this->currentProgTime++;
+            }
+            else {
+                this->add_program(*(this->running_program));
+                this->running_program = NULL;
+
+                load_program();
+
+                running_program->run_cycle();
+                this->currentProgTime++;
+            }
         }
         else
         {
@@ -307,9 +324,10 @@ void STCF_Scheduler::add_program(Program program)
 //Round Robin
 RR_Scheduler::RR_Scheduler(int quantum)
 {
-    quantum = quantum;
+    this->quantum = quantum;
+    this->currentProgTime = 0;
 
-    finished_programs = Scheduler_Report("Round robin   ");
+    finished_programs = Scheduler_Report("Round Robin   ");
 }
 
 void RR_Scheduler::add_program(Program program)

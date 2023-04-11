@@ -56,6 +56,8 @@ class Scheduler
         std::shared_ptr<Program> load_program();
 
     public:
+        int currentProgTime;
+        int quantum;
         Scheduler();
         bool is_stagnant();
         void run();
@@ -89,10 +91,6 @@ class STCF_Scheduler : public Scheduler
 
 class RR_Scheduler : public Scheduler
 {
-    private:    
-        int currentProgTime;
-        int quantum;
-
     public:
         RR_Scheduler(int quantum);
         void add_program(Program program);
