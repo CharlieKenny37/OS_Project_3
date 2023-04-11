@@ -237,15 +237,22 @@ void SJF_Scheduler::add_program(Program program)
     {
         queue.push_back(program);
     }
+    else if(program.get_burst_time() < queue.front().get_burst_time()) {
+            queue.push_front(program);
+    }
+    else if(program.get_burst_time() >= queue.back().get_burst_time()) {
+            queue.push_back(program);
+    }
     else
     {
         //iterates across list in reverse order
-        for (std::list<Program>::iterator it = queue.end(); it != queue.begin(); it--) 
+        for (std::list<Program>::iterator it = queue.begin(); it != queue.end(); ++it) 
         {
             //if input burst time >= current index burst_time, add behind current index
-            if(program.get_burst_time() >= it->get_burst_time())
+
+            if(program.get_burst_time() < it->get_burst_time())
             {
-                queue.insert(++it, program);
+                queue.insert(it, program);
                 break;
             }
         }
