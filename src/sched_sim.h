@@ -41,7 +41,6 @@ class Scheduler
         Program* running_program;
         Scheduler_Report finished_programs;
 
-        int context_switches;
         int time;
         bool in_loading_state;
 
@@ -54,7 +53,7 @@ class Scheduler
         void add_program(Program program);
         void set_time(int t);
         void document_status();
-        Scheduler_Report get_scheduler_report; 
+        Scheduler_Report get_scheduler_report(); 
         
 };
 
@@ -80,6 +79,7 @@ class RR_Scheduler : public Scheduler
 {
     private:    
         int currentProgTime;
+        int quantum;
 
     public:
         RR_Scheduler(int quantum);
@@ -108,14 +108,15 @@ class Program_Spawner
 
 class Scheduler_Report
 {
-    private:
-        double calculate_avg_wait();
-        double calculate_avg_turn();
-
     public:
+        Scheduler_Report(std::string = "");
         std::list<Program> finished_programs;
         std::list<int> process_order;
+        int context_switches;
+        std::string sched_type;
         void print_program_summary();
+        double calculate_avg_wait();
+        double calculate_avg_turn();
 };
 
 #endif // __sched_sim_h__

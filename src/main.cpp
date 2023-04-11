@@ -30,9 +30,13 @@ int main(int argc, char *argv[])
     RR_Scheduler rr_scheduler = RR_Scheduler(2);
     NPP_Scheduler npp_scheduler = NPP_Scheduler();
 
+    std::vector<Scheduler_Report> finished_reports;
+
     int time = 0;
     while(!program_spawner.finish_spawning() && !fcfs_scheduler.is_empty())
     {
+
+
         program_spawner.set_time(time);
         fcfs_scheduler.set_time(time);
     }
@@ -40,6 +44,7 @@ int main(int argc, char *argv[])
     time = 0;
     while(!program_spawner.finish_spawning() && !sjf_scheduler.is_empty())
     {
+
         program_spawner.set_time(time);
         fcfs_scheduler.set_time(time);
     }
@@ -65,6 +70,58 @@ int main(int argc, char *argv[])
         fcfs_scheduler.set_time(time);
     }
     
+
+}
+
+
+
+
+void final_output(std::vector<Scheduler_Report> reports) {
+
+    cout << "***** OVERALL SUMMARY *****" << endl << "Wait Time Comparison" << endl;
+
+    reports.sort([](Scheduler_Report * lhs, Scheduler_Report * rhs) {return lhs->calculate_avg_turn() < rhs->calculate_avg_turn();});
+
+    int i = 1;
+    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
+        cout << i << " " << it->sched_type;
+        if (it->calculate_avg_turn() / 10 <= 0)
+            cout << " ";
+        cout << std::fixed << std::setprecision(2) << it->calculate_avg_turn() << std::endl;
+        i++;
+    }
+    cout << endl;
+
+
+    cout << "Turnaround Time Comparison" << endl;
+
+    reports.sort([](Scheduler_Report * lhs, Scheduler_Report * rhs) {return lhs->calculate_average_wait() < rhs->calculate_average_wait();});
+
+    i = 1;
+    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
+        cout << i << " " << it->sched_type;
+        if (it->calculate_avg_wait() / 10 <= 0)
+            cout << " ";
+        cout << std::fixed << std::setprecision(2) << it->calculate_avg_wait() << std::endl <<;
+        i++;
+    }
+    cout << endl;
+
+    
+    cout << "Context Switch Comparison" << endl;
+
+    reports.sort([](Scheduler_Report * lhs, Scheduler_Report * rhs) {return lhs->get_context_switch() < rhs->get_context_switch();});
+
+    i = 1;
+    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
+        cout << i << " " << it->sched_type;
+        if (it->calculate_avg_wait() / 10 <= 0)
+            cout << " ";
+        cout << std::fixed << std::setprecision(2) << it->get_context_switch() << std::endl;
+        i++;
+    }
+    cout << endl;
+
 }
 
 
