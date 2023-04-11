@@ -7,15 +7,15 @@
 #include <iterator>
 #include "sched_sim.h"
 #include <iomanip>
+#include <memory>
 
 using namespace std;
 
 
 // Program Constructor
-Program::Program(int cpu_burst, int priority, int arrival_time)
+Program::Program(int pid, int cpu_burst, int priority, int arrival_time)
 {
-    this->pid = this->program_counter;
-    this->program_counter++;
+    this->pid = pid;
     this->cpu_burst = cpu_burst;
     this->priority = priority;
     this->arrival_time = arrival_time;
@@ -58,19 +58,20 @@ int Program::get_turnaround_time() { return turnaround_time; }
     
 
 
+Scheduler::Scheduler(){};
 
 // Scheduler base functions
 bool Scheduler::is_empty() { return queue.empty(); }
 
-Program* Scheduler::load_program()
+std::shared_ptr<Program> Scheduler::load_program()
 {
     in_loading_state = true;
 
-    // save a pointer to the finished or null program that was previously running
-    Program* previous_program = running_program;
+    // save the finished or null program that was previously running
+    std::shared_ptr<Program> previous_program = running_program;
 
     // Take the program from queue and load it into running_program
-    running_program = &(queue.front());
+    running_program = std::shared_ptr<Program>(new Program(queue.front()));
     queue.pop_front();
 
     // Save the process order and context switches
@@ -108,6 +109,8 @@ void Scheduler::run()
         {
             // Loads the next program and stores the finished program
             finished_programs.finished_programs.push_back( *(load_program()) );
+            // Run current program
+            running_program->run_cycle();
         }
         else
         {
@@ -131,7 +134,7 @@ void Scheduler::document_status()
 
     // Next, there are 4 states the scheduler can be in: loading the first program, running a program,
     // finishing a program and loading the next program, and finishing the final program. 
-    if( running_program == NULL)
+    if( running_program == NULL && !is_empty())
     {
         // loading the first program state
         cout << "CPU: Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
@@ -166,24 +169,38 @@ void Scheduler::document_status()
     }
     else
     {
-        std::string queue_output;
         for (std::list<Program>::iterator it = this->queue.begin(); it != this->queue.end(); ++it) 
         {
-            queue_output += it->get_pid() + "-";
+            cout << it->get_pid();
+            // if( std::distance( it, queue.end() ) == 1 )
+            // {
+            //     cout << "-";
+            // }
+            cout << "-";
         }
 
-        queue_output = queue_output.substr(0, queue_output.length() - 1);
-        cout << queue_output << endl;
+        cout << endl;
     }
 }
 
+void Scheduler::add_program(Program program)
+{
+    queue.push_back(program);
+}
 
+
+Scheduler_Report Scheduler::get_scheduler_report()
+{
+    return finished_programs;
+}
+
+void Scheduler::set_time(int t) { time = t; }
 
 
 //FCFS
 FCFS_Scheduler::FCFS_Scheduler()
 {
-    finished_programs = Scheduler_Report("STCF          ");
+    finished_programs = Scheduler_Report("FCFS          ");
 }
 
 void FCFS_Scheduler::add_program(Program program)
@@ -196,7 +213,7 @@ void FCFS_Scheduler::add_program(Program program)
 //SJF
 SJF_Scheduler::SJF_Scheduler()
 {
-    finished_programs = Scheduler_Report("FCFS          ");
+    finished_programs = Scheduler_Report("SJF           ");
 }
 
 void SJF_Scheduler::add_program(Program program)
@@ -237,7 +254,7 @@ RR_Scheduler::RR_Scheduler(int quantum)
 {
     quantum = quantum;
 
-    finished_programs = Scheduler_Report("STCF          ");
+    finished_programs = Scheduler_Report("Round robin   ");
 }
 
 void RR_Scheduler::add_program(Program program)
@@ -272,47 +289,33 @@ void Program_Spawner::read_program_file(std::string file_name)
 {
     string line;
     ifstream program_input_file(file_name);
-    
+    int pid_def = 0;
+
     if (program_input_file.is_open())
     {
         while ( getline (program_input_file,line) )
         {
-            std::vector<int> space_locations;
-            std::size_t found_index = -1; 
+            std::vector<int> lineData;
+            std::stringstream lineStream(line);
 
-            // Find the indexes of all the space charaters in the string
-            while(found_index != std::string::npos)
+            int value;
+
+            // Read an integer at a time from the line
+            while(lineStream >> value)
             {
-                found_index = line.find(' ', found_index + 1);
-
-                if(found_index != std::string::npos)
-                    space_locations.push_back(found_index);
+                // Add the integers from a line to a 1D array (vector)
+                lineData.push_back(value);
             }
 
-            // Now that all the locations of the spaces have been found, perform
-            // substring operations and parse the separated numbers
-
-            std::string program_args[3];
-            for(int i = 0; i < sizeof(program_args); i++)
-            {
-                if(i == 0)
-                    program_args[i] = line.substr(0, space_locations[0]);
-                else
-                    program_args[i] = line.substr(space_locations[i-1] + 1, space_locations[i] - space_locations[i-1]);
-            }
-
-            // The number arguments for a program have been split. Now parse the string numbers into integers and create the program object
-            int cpu_burst = stoi(program_args[0]);
-            int priority = stoi(program_args[1]);
-            int arrival_time = stoi(program_args[2]);
-
-            Program new_program = Program(cpu_burst, priority, arrival_time);
+            Program new_program = Program(pid_def, lineData[0], lineData[1], lineData[2]);
 
             // Add the program to the queue list
             queue.push_back(new_program);
 
             // Set new latest arrival time
-            last_program_arrival = arrival_time;
+            last_program_arrival = lineData[0];
+
+            pid_def++;
         }
 
         program_input_file.close();
@@ -343,6 +346,11 @@ bool Program_Spawner::finish_spawning()
 void Program_Spawner::set_time(int t) { time = t; }
 
 
+
+Scheduler_Report::Scheduler_Report(std::string type)
+{
+    sched_type = type;
+}
 
 
 double Scheduler_Report::calculate_avg_wait()
@@ -431,4 +439,3 @@ void Scheduler_Report::print_program_summary()
 
     cout << "Context switches: " << context_switches << endl << endl;
 }
-

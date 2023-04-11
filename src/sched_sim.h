@@ -3,6 +3,7 @@
 
 #include <list>
 #include <vector>
+#include <memory>
 
 class Program
 {
@@ -13,12 +14,9 @@ class Program
         int wait_time;
         int turnaround_time;
 
-        // Used to create pids by assigning new programs sequential IDs starting at 0.
-        static int program_counter;
-
     public:
         int pid;
-        Program(int cpu_burst, int priority, int arrival_time);
+        Program(int pid, int cpu_burst, int priority, int arrival_time);
         void wait();
         void run_cycle();
         int get_pid();
@@ -29,9 +27,6 @@ class Program
         int get_turnaround_time();
         bool finished();
 };
-
-// Initialize the Program pid values to start at 0;
-int Program::program_counter = 0;
 
 class Scheduler_Report
 {
@@ -52,16 +47,16 @@ class Scheduler
 {
     protected:
         std::list<Program> queue;
-        Program* running_program;
+        std::shared_ptr<Program> running_program;
         Scheduler_Report finished_programs;
 
         int time;
         bool in_loading_state;
 
-        Program* load_program();
+        std::shared_ptr<Program> load_program();
 
     public:
-        Scheduler(int time = 0);
+        Scheduler();
         bool is_empty();
         void run();
         virtual void add_program(Program program);

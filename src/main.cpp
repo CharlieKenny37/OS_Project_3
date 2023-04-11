@@ -69,8 +69,9 @@ int main(int argc, char *argv[])
     }
 
     // Redirect cout to the output file
-    std::ofstream out(output_file);
-    std::cout.rdbuf(out.rdbuf()); //redirect std::cout to output file
+    // std::ofstream out(output_file);
+    // std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
+    // std::cout.rdbuf(out.rdbuf()); //redirect std::cout to output file
     
     Program_Spawner program_spawner = Program_Spawner();
     program_spawner.read_program_file(input_file);
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 
     int time = 0;
     cout << endl << "***** FCFS Scheduling *****" << std::endl;
-    while(!program_spawner.finish_spawning() && !fcfs_scheduler.is_empty())
+    while(!program_spawner.finish_spawning() /* && !fcfs_scheduler.is_empty() */)
     {
         // Synchronize timing between objects
         fcfs_scheduler.set_time(time);
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
         for(int i = 0; i < spawned_programs.size(); i++)
             fcfs_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
+        //Run printout on scheduler
         fcfs_scheduler.document_status();
 
         // Run scheduler transition
@@ -107,104 +108,106 @@ int main(int argc, char *argv[])
     }
     finished_reports.push_back(fcfs_scheduler.get_scheduler_report());
 
-    time = 0;
-    cout << endl << "***** SJF Scheduling *****" << std::endl;
-    while(!program_spawner.finish_spawning() && !sjf_scheduler.is_empty())
-    {
-        // Synchronize timing between objects
-        sjf_scheduler.set_time(time);
-        program_spawner.set_time(time);
+    // time = 0;
+    // cout << endl << "***** SJF Scheduling *****" << std::endl;
+    // while(!program_spawner.finish_spawning() && !sjf_scheduler.is_empty())
+    // {
+    //     // Synchronize timing between objects
+    //     sjf_scheduler.set_time(time);
+    //     program_spawner.set_time(time);
 
-        // Enqueue any spawned program
-        std::vector<Program> spawned_programs = program_spawner.run_spawner();
-        for(int i = 0; i < spawned_programs.size(); i++)
-            sjf_scheduler.add_program(spawned_programs[i]);
+    //     // Enqueue any spawned program
+    //     std::vector<Program> spawned_programs = program_spawner.run_spawner();
+    //     for(int i = 0; i < spawned_programs.size(); i++)
+    //         sjf_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        sjf_scheduler.document_status();
+    //     // Run printout on scheduler
+    //     sjf_scheduler.document_status();
 
-        // Run scheduler transition
-        sjf_scheduler.run();
+    //     // Run scheduler transition
+    //     sjf_scheduler.run();
 
-        // Increment time
-        time++;
-    }
-    finished_reports.push_back(sjf_scheduler.get_scheduler_report());
+    //     // Increment time
+    //     time++;
+    // }
+    // finished_reports.push_back(sjf_scheduler.get_scheduler_report());
 
-    time = 0;
-    cout << endl << "***** STCF Scheduling *****" << std::endl;
-    while(!program_spawner.finish_spawning() && !stcf_scheduler.is_empty())
-    {
-        // Synchronize timing between objects
-        stcf_scheduler.set_time(time);
-        program_spawner.set_time(time);
+    // time = 0;
+    // cout << endl << "***** STCF Scheduling *****" << std::endl;
+    // while(!program_spawner.finish_spawning() && !stcf_scheduler.is_empty())
+    // {
+    //     // Synchronize timing between objects
+    //     stcf_scheduler.set_time(time);
+    //     program_spawner.set_time(time);
 
-        // Enqueue any spawned program
-        std::vector<Program> spawned_programs = program_spawner.run_spawner();
-        for(int i = 0; i < spawned_programs.size(); i++)
-            stcf_scheduler.add_program(spawned_programs[i]);
+    //     // Enqueue any spawned program
+    //     std::vector<Program> spawned_programs = program_spawner.run_spawner();
+    //     for(int i = 0; i < spawned_programs.size(); i++)
+    //         stcf_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        stcf_scheduler.document_status();
+    //     // Run printout on scheduler
+    //     stcf_scheduler.document_status();
 
-        // Run scheduler transition
-        stcf_scheduler.run();
+    //     // Run scheduler transition
+    //     stcf_scheduler.run();
 
-        // Increment time
-        time++;
-    }
-    finished_reports.push_back(stcf_scheduler.get_scheduler_report());
+    //     // Increment time
+    //     time++;
+    // }
+    // finished_reports.push_back(stcf_scheduler.get_scheduler_report());
 
-    time = 0;
-    cout << endl << "***** Round robin *****" << std::endl;
-    while(!program_spawner.finish_spawning() && !rr_scheduler.is_empty())
-    {
-        // Synchronize timing between objects
-        rr_scheduler.set_time(time);
-        program_spawner.set_time(time);
+    // time = 0;
+    // cout << endl << "***** Round robin *****" << std::endl;
+    // while(!program_spawner.finish_spawning() && !rr_scheduler.is_empty())
+    // {
+    //     // Synchronize timing between objects
+    //     rr_scheduler.set_time(time);
+    //     program_spawner.set_time(time);
 
-        // Enqueue any spawned program
-        std::vector<Program> spawned_programs = program_spawner.run_spawner();
-        for(int i = 0; i < spawned_programs.size(); i++)
-            rr_scheduler.add_program(spawned_programs[i]);
+    //     // Enqueue any spawned program
+    //     std::vector<Program> spawned_programs = program_spawner.run_spawner();
+    //     for(int i = 0; i < spawned_programs.size(); i++)
+    //         rr_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        rr_scheduler.document_status();
+    //     // Run printout on scheduler
+    //     rr_scheduler.document_status();
 
-        // Run scheduler transition
-        rr_scheduler.run();
+    //     // Run scheduler transition
+    //     rr_scheduler.run();
 
-        // Increment time
-        time++;
-    }
-    finished_reports.push_back(rr_scheduler.get_scheduler_report());
+    //     // Increment time
+    //     time++;
+    // }
+    // finished_reports.push_back(rr_scheduler.get_scheduler_report());
 
-    time = 0;
-    cout << endl << "***** Priority Scheduling *****" << std::endl;
-    while(!program_spawner.finish_spawning() && !npp_scheduler.is_empty())
-    {
-        // Synchronize timing between objects
-        npp_scheduler.set_time(time);
-        program_spawner.set_time(time);
+    // time = 0;
+    // cout << endl << "***** Priority Scheduling *****" << std::endl;
+    // while(!program_spawner.finish_spawning() && !npp_scheduler.is_empty())
+    // {
+    //     // Synchronize timing between objects
+    //     npp_scheduler.set_time(time);
+    //     program_spawner.set_time(time);
 
-        // Enqueue any spawned program
-        std::vector<Program> spawned_programs = program_spawner.run_spawner();
-        for(int i = 0; i < spawned_programs.size(); i++)
-            npp_scheduler.add_program(spawned_programs[i]);
+    //     // Enqueue any spawned program
+    //     std::vector<Program> spawned_programs = program_spawner.run_spawner();
+    //     for(int i = 0; i < spawned_programs.size(); i++)
+    //         npp_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        npp_scheduler.document_status();
+    //     // Run printout on scheduler
+    //     npp_scheduler.document_status();
 
-        // Run scheduler transition
-        npp_scheduler.run();
+    //     // Run scheduler transition
+    //     npp_scheduler.run();
 
-        // Increment time
-        time++;
-    }
-    finished_reports.push_back(npp_scheduler.get_scheduler_report());
+    //     // Increment time
+    //     time++;
+    // }
+    // finished_reports.push_back(npp_scheduler.get_scheduler_report());
 
-    cout << endl;
+    // cout << endl;
 
-    final_output(finished_reports);
+    // final_output(finished_reports);
+
+    // std::cin.rdbuf(cinbuf);   //reset to standard input again
 }
 
