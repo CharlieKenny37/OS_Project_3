@@ -194,7 +194,7 @@ void Scheduler::document_status()
                 cout << "-";
         }
 
-        cout << endl;
+        cout << endl << endl;
     }
 }
 
