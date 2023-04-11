@@ -57,7 +57,7 @@ class Scheduler
 
     public:
         Scheduler();
-        bool is_empty();
+        bool is_stagnant();
         void run();
         virtual void add_program(Program program);
         void set_time(int t);

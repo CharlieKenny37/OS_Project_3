@@ -41,7 +41,7 @@ void Program::run_cycle()
 
 bool Program::finished()
 {
-    return turnaround_time == cpu_burst;
+    return cpu_burst == 0;
 }
 
 int Program::get_pid() { return pid; }
@@ -61,7 +61,10 @@ int Program::get_turnaround_time() { return turnaround_time; }
 Scheduler::Scheduler(){};
 
 // Scheduler base functions
-bool Scheduler::is_empty() { return queue.empty(); }
+bool Scheduler::is_stagnant()
+{ 
+    return queue.empty() && running_program == NULL;
+}
 
 std::shared_ptr<Program> Scheduler::load_program()
 {
@@ -71,8 +74,15 @@ std::shared_ptr<Program> Scheduler::load_program()
     std::shared_ptr<Program> previous_program = running_program;
 
     // Take the program from queue and load it into running_program
-    running_program = std::shared_ptr<Program>(new Program(queue.front()));
-    queue.pop_front();
+    if(!queue.empty())
+    {
+        running_program = std::shared_ptr<Program>(new Program(queue.front()));
+        queue.pop_front();
+    }
+    else
+    {
+        running_program = NULL;
+    }
 
     // Save the process order and context switches
     if(previous_program != NULL)
@@ -107,10 +117,12 @@ void Scheduler::run()
         // Check if the current running program has finished
         if(running_program->finished())
         {
-            // Loads the next program and stores the finished program
+            // Loads the next program and stores the finished program (CAN LOAD NULL PROGRAM)
             finished_programs.finished_programs.push_back( *(load_program()) );
+
             // Run current program
-            running_program->run_cycle();
+            if(running_program != NULL)
+                running_program->run_cycle();
         }
         else
         {
@@ -120,9 +132,9 @@ void Scheduler::run()
     }
 
     // Call wait on all waiting processes
-    for (std::list<Program>::iterator it = this->queue.begin(); it != this->queue.end(); ++it) 
+    for (std::list<Program>::iterator it = queue.begin(); it != queue.end(); it++) 
     {
-        it->wait();
+        it -> wait();
     }
 }
 
@@ -134,7 +146,7 @@ void Scheduler::document_status()
 
     // Next, there are 4 states the scheduler can be in: loading the first program, running a program,
     // finishing a program and loading the next program, and finishing the final program. 
-    if( running_program == NULL && !is_empty())
+    if( running_program == NULL && !queue.empty())
     {
         // loading the first program state
         cout << "CPU: Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
@@ -146,37 +158,40 @@ void Scheduler::document_status()
         cout << "CPU: Running process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << ")" << endl;
     }
 
-    if( running_program != NULL && running_program->finished() && !is_empty())
+    if( running_program != NULL && running_program->finished() && !queue.empty())
     {
         // finishing a program and loading the next program state
         cout << "CPU: Finishing process " << running_program->get_pid() << "; loading process " << queue.front().get_pid() << " (CPU burst = " 
-        << running_program->get_burst_time() << ")" << endl;
+        << queue.front().get_burst_time() << ")" << endl;
     }
 
-    if( running_program != NULL && running_program->finished() && !is_empty())
+    if( running_program != NULL && running_program->finished() && queue.empty())
     {
         // finishing the final program state
         cout << "CPU: Finishing process " << running_program->get_pid() << endl;
+    }
+
+    if( running_program == NULL && queue.empty())
+    {
+        // nothing state
+        cout << "No Tasks to Run on CPU" << endl;
     }
 
 
     // Finally print out the ready queue
     cout << "Ready queue: ";
 
-    if(is_empty())
+    if(queue.empty())
     {
         cout << "empty" << endl;
     }
     else
     {
-        for (std::list<Program>::iterator it = this->queue.begin(); it != this->queue.end(); ++it) 
+        for (std::list<Program>::iterator it = queue.begin(); it != queue.end(); it++) 
         {
             cout << it->get_pid();
-            // if( std::distance( it, queue.end() ) == 1 )
-            // {
-            //     cout << "-";
-            // }
-            cout << "-";
+            if( std::distance(it, queue.end()) != 1)
+                cout << "-";
         }
 
         cout << endl;
@@ -218,14 +233,21 @@ SJF_Scheduler::SJF_Scheduler()
 
 void SJF_Scheduler::add_program(Program program)
 {
-    // burst time of input
-    int time = program.get_burst_time();
-
-    //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) {
-        //if input burst time >= current index burst_time, add behind current index
-        if(time >= (*it).get_burst_time()) {
-            this->queue.insert(it++, program);
+    if(queue.empty())
+    {
+        queue.push_back(program);
+    }
+    else
+    {
+        //iterates across list in reverse order
+        for (std::list<Program>::iterator it = queue.end(); it != queue.begin(); it--) 
+        {
+            //if input burst time >= current index burst_time, add behind current index
+            if(program.get_burst_time() >= it->get_burst_time())
+            {
+                queue.insert(++it, program);
+                break;
+            }
         }
     }
 }
@@ -236,15 +258,17 @@ STCF_Scheduler::STCF_Scheduler()
 }
 
 //STCF  THIS SHOULD PREEMPT IF TIME < CURRENT PROGRAM TIME SOMEHOW
-void STCF_Scheduler::add_program(Program program) {
-    // burst time of input
-    int time = program.get_burst_time();
-    //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) 
+void STCF_Scheduler::add_program(Program program)
+{
+    //iterates across list in reverse order
+    for (std::list<Program>::iterator it = queue.end(); it != queue.begin(); it--) 
     {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= (*it).get_burst_time())
-            this->queue.insert(it++, program);
+        if(program.get_burst_time() >= it->get_burst_time())
+        {
+            queue.insert(++it, program);
+            break;
+        }
     }
 
 }
@@ -271,17 +295,18 @@ NPP_Scheduler::NPP_Scheduler()
 }
 
 
-void NPP_Scheduler::add_program(Program program) {
-    // burst time of input
-    int time = program.get_burst_time();
+void NPP_Scheduler::add_program(Program program)
+{
     //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = this->queue.end(); it != this->queue.begin(); --it) 
-    {
+    for (std::list<Program>::iterator it = queue.end(); it != queue.begin(); it--) 
+        {
         //if input burst time >= current index burst_time, add behind current index
-        if(time >= (*it).get_priority())
-            this->queue.insert(it++, program);
+        if(program.get_priority() >= it->get_priority())
+        {
+            queue.insert(++it, program);
+            break;
+        }
     }
-
 }
 
 
@@ -332,7 +357,7 @@ std::vector<Program> Program_Spawner::run_spawner()
     {
         // Add programs that have the same arrival time as the current spawner time
         if(queue[i].get_arrival_time() == time)
-            spawned_programs.push_back(queue[i]);
+            spawned_programs.push_back(Program(queue[i]));
     }
 
     return spawned_programs;
@@ -350,6 +375,7 @@ void Program_Spawner::set_time(int t) { time = t; }
 Scheduler_Report::Scheduler_Report(std::string type)
 {
     sched_type = type;
+    context_switches = 0;
 }
 
 
@@ -392,7 +418,7 @@ void Scheduler_Report::print_program_summary()
             cout << " ";
 
 
-        cout << "   ";
+        cout << "    ";
 
 
         // Output the wait time
@@ -403,7 +429,7 @@ void Scheduler_Report::print_program_summary()
             cout << " ";
 
         
-        cout << "   ";
+        cout << "    ";
 
 
         // Output the turnaround time
@@ -417,11 +443,13 @@ void Scheduler_Report::print_program_summary()
 
     }
     // Output the averages of the wait and turnaround times
-    cout << "AVG: "; 
+    cout << "AVG:  "; 
     
     if (this->calculate_avg_wait() / 10 <= 0)
         cout << " ";
     cout << std::fixed << std::setprecision(2) << this->calculate_avg_wait();
+
+    cout << "  ";
 
     if (this->calculate_avg_turn() / 10 <= 0)
         cout << " ";
@@ -431,10 +459,10 @@ void Scheduler_Report::print_program_summary()
     cout << "Process sequence: ";
     for (std::list<int>::iterator it = this->process_order.begin(); it != this->process_order.end(); ++it) {
         cout << *(it);
-        if(it++ != this->process_order.end()) {
+        if( std::distance( it, process_order.end() ) != 1 )
             cout << "-";
-        }
     }
+
     cout << std::endl;
 
     cout << "Context switches: " << context_switches << endl << endl;
