@@ -124,6 +124,16 @@ void Scheduler::run()
             if(running_program != NULL)
                 running_program->run_cycle();
         }
+        else if(this->finished_programs.sched_type.compare("STCF          ") == 0 && (this->queue.front().get_burst_time() < this->running_program->get_burst_time())) {
+
+            // this->queue.push_back(*(this->running_program));
+            this->add_program(*(this->running_program));
+            this->running_program = NULL;
+
+            load_program();
+
+            running_program->run_cycle();
+        }
         else
         {
             // run the running program
@@ -245,10 +255,10 @@ void SJF_Scheduler::add_program(Program program)
     }
     else
     {
-        //iterates across list in reverse order
+        //iterates across list
         for (std::list<Program>::iterator it = queue.begin(); it != queue.end(); ++it) 
         {
-            //if input burst time >= current index burst_time, add behind current index
+            //if input burst time < current index burst_time, insert
 
             if(program.get_burst_time() < it->get_burst_time())
             {
@@ -267,14 +277,28 @@ STCF_Scheduler::STCF_Scheduler()
 //STCF  THIS SHOULD PREEMPT IF TIME < CURRENT PROGRAM TIME SOMEHOW
 void STCF_Scheduler::add_program(Program program)
 {
-    //iterates across list in reverse order
-    for (std::list<Program>::iterator it = queue.end(); it != queue.begin(); it--) 
+    if(queue.empty())
     {
-        //if input burst time >= current index burst_time, add behind current index
-        if(program.get_burst_time() >= it->get_burst_time())
+        queue.push_back(program);
+    }
+    else if(program.get_burst_time() < queue.front().get_burst_time()) {
+            queue.push_front(program);
+    }
+    else if(program.get_burst_time() >= queue.back().get_burst_time()) {
+            queue.push_back(program);
+    }
+    else
+    {
+        //iterates across list
+        for (std::list<Program>::iterator it = queue.begin(); it != queue.end(); ++it) 
         {
-            queue.insert(++it, program);
-            break;
+            //if input burst time < current index burst_time, insert
+
+            if(program.get_burst_time() < it->get_burst_time())
+            {
+                queue.insert(it, program);
+                break;
+            }
         }
     }
 

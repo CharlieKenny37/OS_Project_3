@@ -143,34 +143,44 @@ int main(int argc, char *argv[])
         program_spawner.set_time(time);
     }
     cout << "*********************************************************" << endl;
-    cout << "SJC Summary (WT = wait time, TT = turnaround time):" << endl << endl;
+    cout << "SJF Summary (WT = wait time, TT = turnaround time):" << endl << endl;
     sjf_scheduler.get_scheduler_report().print_program_summary();
     
     finished_reports.push_back(sjf_scheduler.get_scheduler_report());
 
-    // time = 0;
-    // cout << endl << "***** STCF Scheduling *****" << std::endl;
-    // while(!program_spawner.finish_spawning() || !stcf_scheduler.is_empty())
-    // {
-    //     // Synchronize timing between objects
-    //     stcf_scheduler.set_time(time);
-    //     program_spawner.set_time(time);
 
-    //     // Enqueue any spawned program
-    //     std::vector<Program> spawned_programs = program_spawner.run_spawner();
-    //     for(int i = 0; i < spawned_programs.size(); i++)
-    //         stcf_scheduler.add_program(spawned_programs[i]);
+    time = 0;
+    // Synchronize timing between objects
+    stcf_scheduler.set_time(time);
+    program_spawner.set_time(time);
 
-    //     // Run printout on scheduler
-    //     stcf_scheduler.document_status();
+    cout << endl << "***** STCF Scheduling *****" << std::endl;
+    while(!program_spawner.finish_spawning() || !stcf_scheduler.is_stagnant())
+    {
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            stcf_scheduler.add_program(spawned_programs[i]);
 
-    //     // Run scheduler transition
-    //     stcf_scheduler.run();
+        // Run printout on scheduler
+        stcf_scheduler.document_status();
 
-    //     // Increment time
-    //     time++;
-    // }
-    // finished_reports.push_back(stcf_scheduler.get_scheduler_report());
+        // Run scheduler transition
+        stcf_scheduler.run();
+
+        // Increment time
+        time++;
+        stcf_scheduler.set_time(time);
+        program_spawner.set_time(time);
+
+    }
+    finished_reports.push_back(stcf_scheduler.get_scheduler_report());
+
+    cout << "*********************************************************" << endl;
+    cout << "TCF Summary (WT = wait time, TT = turnaround time):" << endl << endl;
+    stcf_scheduler.get_scheduler_report().print_program_summary();
+    
+    finished_reports.push_back(stcf_scheduler.get_scheduler_report());
 
     // time = 0;
     // cout << endl << "***** Round robin *****" << std::endl;
