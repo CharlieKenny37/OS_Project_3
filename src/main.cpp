@@ -1,9 +1,60 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sched_sim.h>
+#include "sched_sim.h"
+#include <iomanip>
+#include <list>
 
 using namespace std;
+
+void final_output(std::list<Scheduler_Report> reports) {
+
+    cout << "***** OVERALL SUMMARY *****" << endl << "Wait Time Comparison" << endl;
+
+    reports.sort([](const Scheduler_Report &f, const Scheduler_Report &s) { return f.avg_wait < s.avg_wait; });
+
+    int i = 1;
+    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
+        cout << i << " " << it->sched_type;
+        if (it->calculate_avg_wait() / 10 <= 0)
+            cout << " ";
+        cout << std::fixed << std::setprecision(2) << it->calculate_avg_wait() << std::endl;
+        i++;
+    }
+    cout << endl;
+
+
+    cout << "Turnaround Time Comparison" << endl;
+
+    reports.sort([](const Scheduler_Report &f, const Scheduler_Report &s) { return f.avg_turn < s.avg_turn; });
+
+    i = 1;
+    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
+        cout << i << " " << it->sched_type;
+        if (it->calculate_avg_turn() / 10 <= 0)
+            cout << " ";
+        cout << std::fixed << std::setprecision(2) << it->calculate_avg_turn() << std::endl;
+        i++;
+    }
+    cout << endl;
+
+    
+    cout << "Context Switch Comparison" << endl;
+
+    reports.sort([](const Scheduler_Report &f, const Scheduler_Report &s) { return f.context_switches < s.context_switches; });
+
+    i = 1;
+    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
+        cout << i << " " << it->sched_type;
+        if (it->calculate_avg_wait() / 10 <= 0)
+            cout << " ";
+        cout << std::fixed << std::setprecision(2) << it->context_switches << std::endl;
+        i++;
+    }
+    cout << endl;
+
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -30,99 +81,130 @@ int main(int argc, char *argv[])
     RR_Scheduler rr_scheduler = RR_Scheduler(2);
     NPP_Scheduler npp_scheduler = NPP_Scheduler();
 
-    std::vector<Scheduler_Report> finished_reports;
+    std::list<Scheduler_Report> finished_reports;
 
     int time = 0;
+    cout << endl << "***** FCFS Scheduling *****" << std::endl;
     while(!program_spawner.finish_spawning() && !fcfs_scheduler.is_empty())
     {
-
-
-        program_spawner.set_time(time);
+        // Synchronize timing between objects
         fcfs_scheduler.set_time(time);
+        program_spawner.set_time(time);
+
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            fcfs_scheduler.add_program(spawned_programs[i]);
+
+        // Run printout on scheduler
+        fcfs_scheduler.document_status();
+
+        // Run scheduler transition
+        fcfs_scheduler.run();
+
+        // Increment time
+        time++;
     }
+    finished_reports.push_back(fcfs_scheduler.get_scheduler_report());
 
     time = 0;
+    cout << endl << "***** SJF Scheduling *****" << std::endl;
     while(!program_spawner.finish_spawning() && !sjf_scheduler.is_empty())
     {
-
+        // Synchronize timing between objects
+        sjf_scheduler.set_time(time);
         program_spawner.set_time(time);
-        fcfs_scheduler.set_time(time);
+
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            sjf_scheduler.add_program(spawned_programs[i]);
+
+        // Run printout on scheduler
+        sjf_scheduler.document_status();
+
+        // Run scheduler transition
+        sjf_scheduler.run();
+
+        // Increment time
+        time++;
     }
+    finished_reports.push_back(sjf_scheduler.get_scheduler_report());
 
     time = 0;
+    cout << endl << "***** STCF Scheduling *****" << std::endl;
     while(!program_spawner.finish_spawning() && !stcf_scheduler.is_empty())
     {
+        // Synchronize timing between objects
+        stcf_scheduler.set_time(time);
         program_spawner.set_time(time);
-        fcfs_scheduler.set_time(time);
+
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            stcf_scheduler.add_program(spawned_programs[i]);
+
+        // Run printout on scheduler
+        stcf_scheduler.document_status();
+
+        // Run scheduler transition
+        stcf_scheduler.run();
+
+        // Increment time
+        time++;
     }
+    finished_reports.push_back(stcf_scheduler.get_scheduler_report());
 
     time = 0;
+    cout << endl << "***** Round robin *****" << std::endl;
     while(!program_spawner.finish_spawning() && !rr_scheduler.is_empty())
     {
+        // Synchronize timing between objects
+        rr_scheduler.set_time(time);
         program_spawner.set_time(time);
-        fcfs_scheduler.set_time(time);
+
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            rr_scheduler.add_program(spawned_programs[i]);
+
+        // Run printout on scheduler
+        rr_scheduler.document_status();
+
+        // Run scheduler transition
+        rr_scheduler.run();
+
+        // Increment time
+        time++;
     }
+    finished_reports.push_back(rr_scheduler.get_scheduler_report());
 
     time = 0;
+    cout << endl << "***** Priority Scheduling *****" << std::endl;
     while(!program_spawner.finish_spawning() && !npp_scheduler.is_empty())
     {
+        // Synchronize timing between objects
+        npp_scheduler.set_time(time);
         program_spawner.set_time(time);
-        fcfs_scheduler.set_time(time);
-    }
-    
 
+        // Enqueue any spawned program
+        std::vector<Program> spawned_programs = program_spawner.run_spawner();
+        for(int i = 0; i < spawned_programs.size(); i++)
+            npp_scheduler.add_program(spawned_programs[i]);
+
+        // Run printout on scheduler
+        npp_scheduler.document_status();
+
+        // Run scheduler transition
+        npp_scheduler.run();
+
+        // Increment time
+        time++;
+    }
+    finished_reports.push_back(npp_scheduler.get_scheduler_report());
+
+    cout << endl;
+
+    final_output(finished_reports);
 }
-
-
-
-
-void final_output(std::vector<Scheduler_Report> reports) {
-
-    cout << "***** OVERALL SUMMARY *****" << endl << "Wait Time Comparison" << endl;
-
-    reports.sort([](Scheduler_Report * lhs, Scheduler_Report * rhs) {return lhs->calculate_avg_turn() < rhs->calculate_avg_turn();});
-
-    int i = 1;
-    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
-        cout << i << " " << it->sched_type;
-        if (it->calculate_avg_turn() / 10 <= 0)
-            cout << " ";
-        cout << std::fixed << std::setprecision(2) << it->calculate_avg_turn() << std::endl;
-        i++;
-    }
-    cout << endl;
-
-
-    cout << "Turnaround Time Comparison" << endl;
-
-    reports.sort([](Scheduler_Report * lhs, Scheduler_Report * rhs) {return lhs->calculate_average_wait() < rhs->calculate_average_wait();});
-
-    i = 1;
-    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
-        cout << i << " " << it->sched_type;
-        if (it->calculate_avg_wait() / 10 <= 0)
-            cout << " ";
-        cout << std::fixed << std::setprecision(2) << it->calculate_avg_wait() << std::endl <<;
-        i++;
-    }
-    cout << endl;
-
-    
-    cout << "Context Switch Comparison" << endl;
-
-    reports.sort([](Scheduler_Report * lhs, Scheduler_Report * rhs) {return lhs->get_context_switch() < rhs->get_context_switch();});
-
-    i = 1;
-    for (std::list<Scheduler_Report>::iterator it = reports.begin(); it != reports.end(); ++it) {
-        cout << i << " " << it->sched_type;
-        if (it->calculate_avg_wait() / 10 <= 0)
-            cout << " ";
-        cout << std::fixed << std::setprecision(2) << it->get_context_switch() << std::endl;
-        i++;
-    }
-    cout << endl;
-
-}
-
-
 

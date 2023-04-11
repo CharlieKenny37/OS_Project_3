@@ -7,7 +7,6 @@
 class Program
 {
     private:
-        int pid;
         int cpu_burst;
         int priority;
         int arrival_time;
@@ -18,6 +17,7 @@ class Program
         static int program_counter;
 
     public:
+        int pid;
         Program(int cpu_burst, int priority, int arrival_time);
         void wait();
         void run_cycle();
@@ -33,6 +33,20 @@ class Program
 // Initialize the Program pid values to start at 0;
 int Program::program_counter = 0;
 
+class Scheduler_Report
+{
+    public:
+        Scheduler_Report(std::string = "");
+        std::list<Program> finished_programs;
+        std::list<int> process_order;
+        int context_switches;
+        std::string sched_type;
+        void print_program_summary();
+        double avg_wait;
+        double avg_turn;
+        double calculate_avg_wait();
+        double calculate_avg_turn();
+};
 
 class Scheduler
 {
@@ -50,7 +64,7 @@ class Scheduler
         Scheduler(int time = 0);
         bool is_empty();
         void run();
-        void add_program(Program program);
+        virtual void add_program(Program program);
         void set_time(int t);
         void document_status();
         Scheduler_Report get_scheduler_report(); 
@@ -60,18 +74,21 @@ class Scheduler
 class FCFS_Scheduler : public Scheduler
 {
     public:
+        FCFS_Scheduler();
         void add_program(Program program);
 };
 
 class SJF_Scheduler : public Scheduler
 {
     public:
+        SJF_Scheduler();
         void add_program(Program program);
 };
 
 class STCF_Scheduler : public Scheduler
 {
     public:
+        STCF_Scheduler();
         void add_program(Program program);
 };
 
@@ -89,6 +106,7 @@ class RR_Scheduler : public Scheduler
 class NPP_Scheduler : public Scheduler
 {
     public:
+        NPP_Scheduler();
         void add_program(Program input);
 };
 
@@ -104,19 +122,6 @@ class Program_Spawner
         std::vector<Program> run_spawner();
         void set_time(int t);
         bool finish_spawning();
-};
-
-class Scheduler_Report
-{
-    public:
-        Scheduler_Report(std::string = "");
-        std::list<Program> finished_programs;
-        std::list<int> process_order;
-        int context_switches;
-        std::string sched_type;
-        void print_program_summary();
-        double calculate_avg_wait();
-        double calculate_avg_turn();
 };
 
 #endif // __sched_sim_h__

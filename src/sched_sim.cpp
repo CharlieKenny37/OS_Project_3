@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <iterator>
-#include <sched_sim.h>
+#include "sched_sim.h"
 #include <iomanip>
 
 using namespace std;
@@ -183,7 +183,6 @@ void Scheduler::document_status()
 //FCFS
 FCFS_Scheduler::FCFS_Scheduler()
 {
-    cout << "***** FCFS Scheduling *****" << std::endl;
     finished_programs = Scheduler_Report("STCF          ");
 }
 
@@ -197,7 +196,6 @@ void FCFS_Scheduler::add_program(Program program)
 //SJF
 SJF_Scheduler::SJF_Scheduler()
 {
-    cout << "***** SJF Scheduling *****" << std::endl;
     finished_programs = Scheduler_Report("FCFS          ");
 }
 
@@ -217,7 +215,6 @@ void SJF_Scheduler::add_program(Program program)
 
 STCF_Scheduler::STCF_Scheduler()
 {
-    cout << "***** STCF Scheduling *****" << std::endl;
     finished_programs = Scheduler_Report("STCF          ");
 }
 
@@ -240,7 +237,6 @@ RR_Scheduler::RR_Scheduler(int quantum)
 {
     quantum = quantum;
 
-    cout << "***** Round robin *****" << std::endl;
     finished_programs = Scheduler_Report("STCF          ");
 }
 
@@ -254,12 +250,11 @@ void RR_Scheduler::add_program(Program program)
 // Priority
 NPP_Scheduler::NPP_Scheduler()
 {
-    cout << "***** Priority Scheduling *****" << std::endl;
     finished_programs = Scheduler_Report("Priority      ");
 }
 
 
-void STCF_Scheduler::add_program(Program program) {
+void NPP_Scheduler::add_program(Program program) {
     // burst time of input
     int time = program.get_burst_time();
     //iterates accross list in reverse order
@@ -358,6 +353,7 @@ double Scheduler_Report::calculate_avg_wait()
         total += it->get_wait_time();
     }
 
+    avg_wait = total / finished_programs.size();
     return total / finished_programs.size();
 }
 
@@ -369,6 +365,7 @@ double Scheduler_Report::calculate_avg_turn()
         total += it->get_turnaround_time();
     }
 
+    avg_turn = total / finished_programs.size();
     return total / finished_programs.size();
 }
 
@@ -377,7 +374,7 @@ void Scheduler_Report::print_program_summary()
     cout << "PID" << "     " << "WT" << "     " << "TT" << std::endl;
 
     // Sort the finished_programs list based on pid
-    finished_programs.sort([](Program * lhs, Program * rhs) {return lhs->get_pid() < rhs->get_pid();});
+    finished_programs.sort([](const Program &f, const Program &s) { return f.pid < s.pid; });
     
     for (std::list<Program>::iterator it = this->finished_programs.begin(); it != this->finished_programs.end(); ++it) 
     {
