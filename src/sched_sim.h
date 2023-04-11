@@ -21,6 +21,7 @@ class Program
         Program(int cpu_burst, int priority, int arrival_time);
         void wait();
         void run_cycle();
+        int get_pid();
         int get_burst_time();
         int get_priority();
         int get_arrival_time();
@@ -37,54 +38,58 @@ class Scheduler
 {
     protected:
         std::list<Program> queue;
-        Program running_program;
+        Program* running_program;
+        Scheduler_Report finished_programs;
 
         int context_switches;
         int time;
+        bool in_loading_state;
 
-        virtual void update_queue(Program input);
-        void load_program();
+        Program* load_program();
 
     public:
         Scheduler(int time = 0);
         bool is_empty();
-        Program run();
-        void add_programs(std::list<Program> programs);
+        void run();
+        void add_program(Program program);
         void set_time(int t);
+        void document_status();
+        Scheduler_Report get_scheduler_report; 
+        
 };
 
 class FCFS_Scheduler : public Scheduler
 {
     public:
-        void update_queue(Program input);
+        void add_program(Program program);
 };
 
 class SJF_Scheduler : public Scheduler
 {
-    private:
-        void update_queue(Program input);
+    public:
+        void add_program(Program program);
 };
 
 class STCF_Scheduler : public Scheduler
 {
-    private:
-        void update_queue(Program input);
+    public:
+        void add_program(Program program);
 };
 
 class RR_Scheduler : public Scheduler
 {
     private:    
         int currentProgTime;
-        void update_queue(Program input);
 
     public:
         RR_Scheduler(int quantum);
+        void add_program(Program program);
 };
 
 class NPP_Scheduler : public Scheduler
 {
-    private:
-        virtual void update_queue(Program input);
+    public:
+        void add_program(Program input);
 };
 
 class Program_Spawner
@@ -103,8 +108,14 @@ class Program_Spawner
 
 class Scheduler_Report
 {
+    private:
+        double calculate_avg_wait();
+        double calculate_avg_turn();
+
     public:
         std::list<Program> finished_programs;
+        std::list<int> process_order;
+        void print_program_summary();
 };
 
 #endif // __sched_sim_h__

@@ -1,7 +1,6 @@
-
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <sched_sim.h>
 
 using namespace std;
@@ -17,6 +16,10 @@ int main(int argc, char *argv[])
         output_file = argv[2];
         report_spacing = atoi(argv[3]);
     }
+
+    // Redirect cout to the output file
+    std::ofstream out(output_file);
+    std::cout.rdbuf(out.rdbuf()); //redirect std::cout to output file
     
     Program_Spawner program_spawner = Program_Spawner();
     program_spawner.read_program_file(input_file);
