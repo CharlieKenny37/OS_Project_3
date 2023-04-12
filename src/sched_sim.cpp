@@ -126,7 +126,7 @@ void Scheduler::run()
             if(running_program != NULL)
                 running_program->run_cycle();
         }
-        else if(this->finished_programs.sched_type.compare("STCF          ") == 0 && (this->running_program->get_burst_time() > this->running_program->get_burst_time())) {
+        else if(this->finished_programs.sched_type.compare("STCF          ") == 0 && (this->running_program->get_burst_time() > queue.front().get_burst_time()) && !this->queue.empty()) {
 
             // this->queue.push_back(*(this->running_program));
             this->add_program(*(this->running_program));
@@ -184,7 +184,10 @@ void Scheduler::document_status()
         cout << "CPU: Finishing process " << running_program->get_pid() << "; loading process " << queue.front().get_pid() << " (CPU burst = " 
         << queue.front().get_burst_time() << ")" << endl;
     }
-    else if(this->currentProgTime == this->quantum) {
+    else if( running_program != NULL && this->currentProgTime == this->quantum) {
+        cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
+    }
+    else if( running_program != NULL && this->running_program->get_burst_time() > queue.front().get_burst_time() && !this->queue.empty()) {
         cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
     }
     else if( running_program != NULL && !running_program->finished())
