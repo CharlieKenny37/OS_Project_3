@@ -111,6 +111,7 @@ void Scheduler::run()
 
             // Run current program
             running_program->run_cycle();
+            this->currentProgTime++;
         }
     }
     else
@@ -146,7 +147,7 @@ void Scheduler::run()
                 load_program();
 
                 running_program->run_cycle();
-                this->currentProgTime = 0;
+                this->currentProgTime = 1;
             }
         }
         else
@@ -177,18 +178,21 @@ void Scheduler::document_status()
         cout << "CPU: Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
     }
 
-    if( running_program != NULL && !running_program->finished())
-    {
-        // running a program state
-        cout << "CPU: Running process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << ")" << endl;
-    }
-
     if( running_program != NULL && running_program->finished() && !queue.empty())
     {
         // finishing a program and loading the next program state
         cout << "CPU: Finishing process " << running_program->get_pid() << "; loading process " << queue.front().get_pid() << " (CPU burst = " 
         << queue.front().get_burst_time() << ")" << endl;
     }
+    else if(this->currentProgTime == this->quantum) {
+        cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
+    }
+    else if( running_program != NULL && !running_program->finished())
+    {
+        // running a program state
+        cout << "CPU: Running process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << ")" << endl;
+    }
+
 
     if( running_program != NULL && running_program->finished() && queue.empty())
     {
@@ -240,11 +244,14 @@ void Scheduler::set_time(int t) { time = t; }
 //FCFS
 FCFS_Scheduler::FCFS_Scheduler()
 {
+    this->quantum = 100;
+    this->currentProgTime = 0;
     finished_programs = Scheduler_Report("FCFS          ");
 }
 
 void FCFS_Scheduler::add_program(Program program)
 {
+    
     queue.push_back(program);
 }
 
@@ -253,6 +260,8 @@ void FCFS_Scheduler::add_program(Program program)
 //SJF
 SJF_Scheduler::SJF_Scheduler()
 {
+    this->quantum = 100;
+    this->currentProgTime = 0;
     finished_programs = Scheduler_Report("SJF           ");
 }
 
@@ -286,6 +295,8 @@ void SJF_Scheduler::add_program(Program program)
 
 STCF_Scheduler::STCF_Scheduler()
 {
+    this->quantum = 100;
+    this->currentProgTime = 0;
     this->preemting = false;
     finished_programs = Scheduler_Report("STCF          ");
 }
@@ -340,6 +351,9 @@ void RR_Scheduler::add_program(Program program)
 // Priority
 NPP_Scheduler::NPP_Scheduler()
 {
+
+    this->quantum = 100;
+    this->currentProgTime = 0;
     finished_programs = Scheduler_Report("Priority      ");
 }
 
