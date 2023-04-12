@@ -169,46 +169,47 @@ void Scheduler::document_status()
     // First add the time to the printout
     cout << "t = " << time << std::endl;
 
-
-    // Next, there are 4 states the scheduler can be in: loading the first program, running a program,
-    // finishing a program and loading the next program, and finishing the final program. 
-    if( running_program == NULL && !queue.empty())
-    {
-        // loading the first program state
-        cout << "CPU: Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
-    }
-
-    if( running_program != NULL && running_program->finished() && !queue.empty())
-    {
-        // finishing a program and loading the next program state
-        cout << "CPU: Finishing process " << running_program->get_pid() << "; loading process " << queue.front().get_pid() << " (CPU burst = " 
-        << queue.front().get_burst_time() << ")" << endl;
-    }
-    else if( running_program != NULL && this->currentProgTime == this->quantum) {
-        cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
-    }
-    else if( running_program != NULL && this->running_program->get_burst_time() > queue.front().get_burst_time() && !this->queue.empty()) {
-        cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
-    }
-    else if( running_program != NULL && !running_program->finished())
-    {
-        // running a program state
-        cout << "CPU: Running process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << ")" << endl;
-    }
-
-
     if( running_program != NULL && running_program->finished() && queue.empty())
     {
         // finishing the final program state
         cout << "CPU: Finishing process " << running_program->get_pid() << endl;
     }
+    else {
+        // Next, there are 4 states the scheduler can be in: loading the first program, running a program,
+        // finishing a program and loading the next program, and finishing the final program. 
+        if( running_program == NULL && !queue.empty())
+        {
+            // loading the first program state
+            cout << "CPU: Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
+        }
 
-    if( running_program == NULL && queue.empty())
-    {
-        // nothing state
-        cout << "No Tasks to Run on CPU" << endl;
+        if( running_program != NULL && running_program->finished() && !queue.empty())
+        {
+            // finishing a program and loading the next program state
+            cout << "CPU: Finishing process " << running_program->get_pid() << "; loading process " << queue.front().get_pid() << " (CPU burst = " 
+            << queue.front().get_burst_time() << ")" << endl;
+        }
+        else if( running_program != NULL && this->currentProgTime == this->quantum) {
+            cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
+        }
+        else if( running_program != NULL && this->running_program->get_burst_time() > queue.front().get_burst_time() && !this->queue.empty()) {
+            cout << "CPU: Preempting process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << "); Loading process " << queue.front().get_pid() << " (CPU burst = " << queue.front().get_burst_time() << ")" << endl;
+        }
+        else if( running_program != NULL && !running_program->finished())
+        {
+            // running a program state
+            cout << "CPU: Running process " << running_program->get_pid() << " (remaining CPU burst = " << running_program->get_burst_time() << ")" << endl;
+        }
+
+
+
+
+        if( running_program == NULL && queue.empty())
+        {
+            // nothing state
+            cout << "No Tasks to Run on CPU" << endl;
+        }
     }
-
 
     // Finally print out the ready queue
     cout << "Ready queue: ";
@@ -247,7 +248,7 @@ void Scheduler::set_time(int t) { time = t; }
 //FCFS
 FCFS_Scheduler::FCFS_Scheduler()
 {
-    this->quantum = 100;
+    this->quantum = 99999;
     this->currentProgTime = 0;
     finished_programs = Scheduler_Report("FCFS          ");
 }
@@ -263,7 +264,7 @@ void FCFS_Scheduler::add_program(Program program)
 //SJF
 SJF_Scheduler::SJF_Scheduler()
 {
-    this->quantum = 100;
+    this->quantum = 99999;
     this->currentProgTime = 0;
     finished_programs = Scheduler_Report("SJF           ");
 }
@@ -298,7 +299,7 @@ void SJF_Scheduler::add_program(Program program)
 
 STCF_Scheduler::STCF_Scheduler()
 {
-    this->quantum = 100;
+    this->quantum = 99999;
     this->currentProgTime = 0;
     this->preemting = false;
     finished_programs = Scheduler_Report("STCF          ");
@@ -355,7 +356,7 @@ void RR_Scheduler::add_program(Program program)
 NPP_Scheduler::NPP_Scheduler()
 {
 
-    this->quantum = 100;
+    this->quantum = 99999;
     this->currentProgTime = 0;
     finished_programs = Scheduler_Report("Priority      ");
 }

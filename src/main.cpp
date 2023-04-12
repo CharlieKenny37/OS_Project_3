@@ -74,9 +74,9 @@ int main(int argc, char *argv[])
     }
 
     // Redirect cout to the output file
-    // std::ofstream out(output_file);
-    // std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
-    // std::cout.rdbuf(out.rdbuf()); //redirect std::cout to output file
+    std::ofstream out(output_file);
+    std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+    std::cout.rdbuf(out.rdbuf()); //redirect std::cout to output file
     
     Program_Spawner program_spawner = Program_Spawner();
     program_spawner.read_program_file(input_file);
@@ -257,6 +257,6 @@ int main(int argc, char *argv[])
 
     final_output(finished_reports);
 
-    // std::cin.rdbuf(cinbuf);   //reset to standard input again
+    std::cout.rdbuf(coutbuf);   //reset to standard input again
 }
 
