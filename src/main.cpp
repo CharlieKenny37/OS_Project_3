@@ -103,8 +103,9 @@ int main(int argc, char *argv[])
             fcfs_scheduler.add_program(spawned_programs[i]);
 
         //Run printout on scheduler
-        fcfs_scheduler.document_status();
-
+        if(time % report_spacing == 0) {
+            fcfs_scheduler.document_status();
+        }
         // Run scheduler transition
         fcfs_scheduler.run();
 
@@ -134,8 +135,10 @@ int main(int argc, char *argv[])
         for(int i = 0; i < spawned_programs.size(); i++)
             sjf_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        sjf_scheduler.document_status();
+        //Run printout on scheduler
+        if(time%report_spacing == 0) {
+            sjf_scheduler.document_status();
+        }
 
         // Run scheduler transition
         sjf_scheduler.run();
@@ -167,8 +170,10 @@ int main(int argc, char *argv[])
         for(int i = 0; i < spawned_programs.size(); i++)
             stcf_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        stcf_scheduler.document_status();
+        //Run printout on scheduler
+        if(time % report_spacing == 0) {
+            stcf_scheduler.document_status();
+        }
 
         // Run scheduler transition
         stcf_scheduler.run();
@@ -199,8 +204,10 @@ int main(int argc, char *argv[])
         for(int i = 0; i < spawned_programs.size(); i++)
             rr_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        rr_scheduler.document_status();
+        //Run printout on scheduler
+        if(time % report_spacing == 0) {
+            rr_scheduler.document_status();
+        }
 
         // Run scheduler transition
         rr_scheduler.run();
@@ -234,8 +241,10 @@ int main(int argc, char *argv[])
         for(int i = 0; i < spawned_programs.size(); i++)
             npp_scheduler.add_program(spawned_programs[i]);
 
-        // Run printout on scheduler
-        npp_scheduler.document_status();
+        //Run printout on scheduler
+        if(time % report_spacing == 0) {
+            npp_scheduler.document_status();
+        }
 
         // Run scheduler transition
         npp_scheduler.run();

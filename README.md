@@ -22,6 +22,8 @@ Replace <Snapshot Cycle Interval> with an integer representing the number of cyc
 
 ## Output
 
-Here is an example output for the program based on the shown command:
+In out2.txt is an example output for the program based on the shown command:
+
+    ./project3 testin1.dat out1.txt 1
 
 
