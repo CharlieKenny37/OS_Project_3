@@ -52,6 +52,7 @@ class Scheduler
 
         int time;
         bool in_loading_state;
+        bool preemting;
 
         std::shared_ptr<Program> load_program();
 

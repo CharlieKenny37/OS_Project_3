@@ -125,11 +125,10 @@ void Scheduler::run()
             if(running_program != NULL)
                 running_program->run_cycle();
         }
-        else if(this->finished_programs.sched_type.compare("STCF          ") == 0 && (this->queue.front().get_burst_time() < this->running_program->get_burst_time())) {
+        else if(this->finished_programs.sched_type.compare("STCF          ") == 0 && (this->running_program->get_burst_time() > this->running_program->get_burst_time())) {
 
             // this->queue.push_back(*(this->running_program));
             this->add_program(*(this->running_program));
-            this->running_program = NULL;
 
             load_program();
 
@@ -143,12 +142,11 @@ void Scheduler::run()
             }
             else {
                 this->add_program(*(this->running_program));
-                this->running_program = NULL;
 
                 load_program();
 
                 running_program->run_cycle();
-                this->currentProgTime++;
+                this->currentProgTime = 0;
             }
         }
         else
@@ -288,6 +286,7 @@ void SJF_Scheduler::add_program(Program program)
 
 STCF_Scheduler::STCF_Scheduler()
 {
+    this->preemting = false;
     finished_programs = Scheduler_Report("STCF          ");
 }
 
@@ -326,6 +325,7 @@ RR_Scheduler::RR_Scheduler(int quantum)
 {
     this->quantum = quantum;
     this->currentProgTime = 0;
+    this->preemting = false;
 
     finished_programs = Scheduler_Report("Round Robin   ");
 }
@@ -346,14 +346,25 @@ NPP_Scheduler::NPP_Scheduler()
 
 void NPP_Scheduler::add_program(Program program)
 {
-    //iterates accross list in reverse order
-    for (std::list<Program>::iterator it = queue.end(); it != queue.begin(); it--) 
-        {
-        //if input burst time >= current index burst_time, add behind current index
-        if(program.get_priority() >= it->get_priority())
-        {
-            queue.insert(++it, program);
-            break;
+
+    if(queue.empty())
+    {
+        queue.push_back(program);
+    }
+    else {
+        //iterates accross list in reverse order
+        for (std::list<Program>::iterator it = queue.begin(); it != queue.end(); ++it) 
+            {
+            //if input burst time >= current index burst_time, add behind current index
+            if(program.get_priority() < it->get_priority())
+            {
+                queue.insert(it, program);
+                break;
+            }
+            else if (it == --queue.end()) {
+                queue.push_back(program);
+                break;
+            }
         }
     }
 }
@@ -436,8 +447,8 @@ double Scheduler_Report::calculate_avg_wait()
         total += it->get_wait_time();
     }
 
-    avg_wait = total / finished_programs.size();
-    return total / finished_programs.size();
+    this->avg_wait = total / finished_programs.size();
+    return this->avg_wait;
 }
 
 double Scheduler_Report::calculate_avg_turn()
@@ -448,7 +459,7 @@ double Scheduler_Report::calculate_avg_turn()
         total += it->get_turnaround_time();
     }
 
-    avg_turn = total / finished_programs.size();
+    this->avg_turn = total / finished_programs.size();
     return total / finished_programs.size();
 }
 
